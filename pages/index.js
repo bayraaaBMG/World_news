@@ -7,6 +7,8 @@ import { CATEGORIES, colorFor } from "../lib/categories";
 import { extractItems } from "../lib/parser";
 import { buildPrompt } from "../lib/prompt";
 
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 минут
+
 async function callClaude(prompt) {
   const res = await fetch("/api/claude", {
     method: "POST",
@@ -21,50 +23,90 @@ async function callClaude(prompt) {
   return data.text || "";
 }
 
+function loadLocalCache() {
+  if (typeof window === "undefined") return {};
+  const restored = {};
+  CATEGORIES.forEach(({ key }) => {
+    try {
+      const raw = localStorage.getItem(`or_${key}`);
+      if (!raw) return;
+      const { items, ts } = JSON.parse(raw);
+      if (Date.now() - ts < CACHE_TTL_MS) {
+        restored[key] = { items, updatedAt: new Date(ts) };
+      }
+    } catch {}
+  });
+  return restored;
+}
+
 export default function App() {
   const [active, setActive] = useState("ai");
-  const [items, setItems] = useState([]);
+  const [cache, setCache] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [updated, setUpdated] = useState(null);
-  const reqId = useRef(0);
 
-  const load = useCallback(async (key) => {
-    const cat = CATEGORIES.find((c) => c.key === key);
-    const id = ++reqId.current;
-    setLoading(true);
-    setError(null);
-    setItems([]);
+  // Ref keeps cache readable inside stable callbacks without stale closure
+  const cacheRef = useRef({});
+
+  const saveCache = useCallback((key, items) => {
+    const updatedAt = new Date();
+    const next = { ...cacheRef.current, [key]: { items, updatedAt } };
+    cacheRef.current = next;
+    setCache(next);
     try {
-      const raw = await callClaude(buildPrompt(cat));
-      const parsed = extractItems(raw);
-      if (id !== reqId.current) return;
-      if (!parsed.length) throw new Error("Мэдээ боловсруулж чадсангүй. Дахин оролдоно уу.");
-      setItems(parsed);
-      setUpdated(new Date());
-    } catch (e) {
-      if (id !== reqId.current) return;
-      setError(e.message || "Алдаа гарлаа");
-    } finally {
-      if (id === reqId.current) setLoading(false);
+      localStorage.setItem(`or_${key}`, JSON.stringify({ items, ts: updatedAt.getTime() }));
+    } catch {}
+  }, []);
+
+  // Restore from localStorage on first mount
+  useEffect(() => {
+    const restored = loadLocalCache();
+    if (Object.keys(restored).length) {
+      cacheRef.current = restored;
+      setCache(restored);
     }
   }, []);
 
+  const load = useCallback(async (key, force = false) => {
+    if (!force && cacheRef.current[key]?.items?.length) {
+      setError(null);
+      setLoading(false);
+      return;
+    }
+    const cat = CATEGORIES.find((c) => c.key === key);
+    setLoading(true);
+    setError(null);
+    try {
+      const raw = await callClaude(buildPrompt(cat));
+      const parsed = extractItems(raw);
+      if (!parsed.length) throw new Error("Мэдээ боловсруулж чадсангүй. Дахин оролдоно уу.");
+      saveCache(key, parsed);
+    } catch (e) {
+      setError(e.message || "Алдаа гарлаа");
+    } finally {
+      setLoading(false);
+    }
+  }, [saveCache]);
+
+  // When active tab changes, load if not cached
   useEffect(() => { load(active); }, [active, load]);
 
   const accent = colorFor(active);
+  const current = cache[active] || {};
+  const items = current.items || [];
+  const updated = current.updatedAt || null;
 
   return (
     <div className="or-root">
-      <Header loading={loading} updated={updated} onRefresh={() => load(active)} />
-      <TabNav active={active} onChange={setActive} />
+      <Header loading={loading} updated={updated} onRefresh={() => load(active, true)} />
+      <TabNav active={active} onChange={setActive} loaded={cache} />
 
       <main className="or-main">
         {error && (
           <div className="or-error">
             <AlertTriangle size={18} />
             <span>{error}</span>
-            <button onClick={() => load(active)}>Дахин оролдох</button>
+            <button onClick={() => load(active, true)}>Дахин оролдох</button>
           </div>
         )}
         {!error && (

@@ -141,3 +141,34 @@ body { background: #0a0a0c; }
   font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--dim); }
 .or-footer span { display: flex; align-items: center; gap: 6px; }
 .or-foot-note { color: #5a5a62; }
+
+/* Tab loaded-dot indicator */
+.or-tab-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  margin-left: 6px; opacity: 0.7; vertical-align: middle; flex-shrink: 0; }
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .or-header-inner { padding: 16px 16px; gap: 12px; }
+  .or-wordmark { font-size: 16px; }
+  .or-tagline { display: none; }
+  .or-logo { width: 40px; height: 40px; }
+  .or-brand { gap: 10px; }
+  .or-updated { display: none; }
+
+  .or-tabs { padding: 12px 12px 4px; gap: 7px; }
+  .or-tab { font-size: 11px; padding: 6px 11px; }
+
+  .or-main { padding: 8px 12px 32px; }
+  .or-grid { grid-template-columns: 1fr; gap: 12px; }
+  .or-section-head { font-size: 13px; padding: 14px 2px 12px; }
+
+  .or-card { padding: 14px 14px 12px; }
+  .or-title { font-size: 14px; }
+
+  .or-footer { padding: 14px 12px 24px; flex-direction: column; gap: 6px; }
+  .or-foot-note { display: none; }
+}
+
+@media (max-width: 900px) {
+  .or-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+}
