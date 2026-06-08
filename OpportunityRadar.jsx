@@ -31,22 +31,17 @@ const strengthClass = (s) => {
 // Claude API дуудлага (web search-тэй)
 // ─────────────────────────────────────────────────────────────
 async function callClaude(prompt) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      messages: [{ role: "user", content: prompt }],
-      tools: [{ type: "web_search_20250305", name: "web_search" }],
-    }),
+    body: JSON.stringify({ prompt }),
   });
-  if (!res.ok) throw new Error("API алдаа: " + res.status);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "API алдаа: " + res.status);
+  }
   const data = await res.json();
-  return (data.content || [])
-    .filter((b) => b.type === "text")
-    .map((b) => b.text)
-    .join("\n");
+  return data.text || "";
 }
 
 // Truncate болсон ч бүтэн object-уудыг салгаж авдаг найдвартай parser
