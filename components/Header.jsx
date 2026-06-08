@@ -1,6 +1,6 @@
-import { Radar, RefreshCw } from "lucide-react";
+import { Radar, RefreshCw, Bookmark } from "lucide-react";
 
-export default function Header({ loading, updated, onRefresh }) {
+export default function Header({ loading, updated, onRefresh, savedCount, onSavedOpen }) {
   const hhmm = updated
     ? updated.getHours().toString().padStart(2, "0") + ":" +
       updated.getMinutes().toString().padStart(2, "0")
@@ -26,6 +26,14 @@ export default function Header({ loading, updated, onRefresh }) {
             <span>Шинэчилсэн</span>
             <strong>{hhmm}</strong>
           </div>
+          <button
+            className={"or-saved-btn" + (savedCount > 0 ? " has-items" : "")}
+            onClick={onSavedOpen}
+            aria-label="Хадгалсан мэдээ"
+          >
+            <Bookmark size={15} fill={savedCount > 0 ? "currentColor" : "none"} />
+            {savedCount > 0 && <span className="or-saved-count">{savedCount}</span>}
+          </button>
           <button
             className="or-refresh"
             onClick={onRefresh}

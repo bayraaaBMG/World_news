@@ -1,11 +1,11 @@
-import { Activity, Lightbulb, AlertTriangle, ExternalLink } from "lucide-react";
+import { Activity, Lightbulb, AlertTriangle, ExternalLink, Bookmark } from "lucide-react";
 import { strengthClass } from "../lib/categories";
 
 function SentimentChip({ s }) {
   const map = {
-    positive: { t: "Эерэг",           c: "#6ee87a" },
-    negative: { t: "Сөрөг",           c: "#e8694d" },
-    neutral:  { t: "Төвийг сахисан",  c: "#9a9aa0" },
+    positive: { t: "Эерэг",          c: "#6ee87a" },
+    negative: { t: "Сөрөг",          c: "#e8694d" },
+    neutral:  { t: "Төвийг сахисан", c: "#9a9aa0" },
   };
   const m = map[s] || map.neutral;
   return (
@@ -15,10 +15,21 @@ function SentimentChip({ s }) {
   );
 }
 
-export function Card({ a, accent, i }) {
+export function Card({ a, accent, i, saved = false, onSave }) {
   return (
     <article className="or-card" style={{ animationDelay: `${i * 70}ms`, "--accent": accent }}>
       <div className="or-card-bar" />
+
+      {onSave && (
+        <button
+          className={"or-bookmark-btn" + (saved ? " saved" : "")}
+          onClick={() => onSave(a)}
+          aria-label={saved ? "Хасах" : "Хадгалах"}
+        >
+          <Bookmark size={13} fill={saved ? "currentColor" : "none"} />
+        </button>
+      )}
+
       <div className="or-card-meta">
         <span className="or-src">{a.source || "—"}</span>
         <span className="or-dot">•</span>
