@@ -10,7 +10,6 @@ export default function Document() {
         <meta property="og:title" content="Opportunity Radar" />
         <meta property="og:description" content="Дэлхийн мэдээг бизнес боломж болгон хувиргадаг AI тагнуул" />
         <meta property="og:type" content="website" />
-        <title>Opportunity Radar</title>
       </Head>
       <body>
         <Main />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import Head from "next/head";
 import { AlertTriangle, Zap, TrendingUp } from "lucide-react";
 import Header from "../components/Header";
 import TabNav from "../components/TabNav";
@@ -136,6 +137,9 @@ export default function App() {
 
   return (
     <div className="or-root">
+      <Head>
+        <title>Opportunity Radar</title>
+      </Head>
       <Header
         loading={loading}
         updated={updated}
